@@ -1,9 +1,18 @@
-# pdrpulm
+# pdrpulm (Pull Down to Refresh & Pull Up to Load More)
 
-A new flutter package project.
+A widget that supports "Pull Down to Refresh & Pull Up to Load More" idiom.
+Google Material never have "Pull Up to Load More" so implement as a package.
 
 ## Getting Started
 
-For help getting started with Flutter, view our online [documentation](http://flutter.io/).
+```
+    return new RefreshAndLoadMoreIndicator(
+        onRefresh: _handleRefresh,
+        onLoadMore: _handleLoadMore,
+        child: new ListView.builder(
+```
 
-For help on editing package code, view the [documentation](https://flutter.io/developing-packages/).
+## Known Bug
+
+The indicator position may be wrong. 
+

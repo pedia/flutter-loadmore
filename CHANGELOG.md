@@ -1,3 +1,4 @@
-## [0.0.1] - TODO: Add release date.
+## [0.0.1] - 2017-11-01
 
-* TODO: Describe initial release.
+* copy from materials/refresh_indicator.dart, add load more.
+
