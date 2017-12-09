@@ -6,8 +6,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
-
 import 'package:flutter/material.dart';
 
 // The over-scroll distance that moves the indicator to its maximum
@@ -37,22 +35,21 @@ typedef Future<Null> LoadMoreCallback();
 
 // The state machine moves through these modes only when the scrollable
 // identified by scrollableKey has been scrolled to its min or max limit.
-enum _RefreshIndicatorMode {
-  drag, // Pointer is down.
-  armed, // Dragged far enough that an up event will run the onRefresh callback.
-  snap, // Animating to the indicator's final "displacement".
-  refresh, // Running the refresh callback.
-  done, // Animating the indicator's fade-out after refreshing.
+enum _RefreshAndLoadMoreIndicatorMode {
+  drag,     // Pointer is down.
+  armed,    // Dragged far enough that an up event will run the onRefresh callback.
+  snap,     // Animating to the indicator's final "displacement".
+  refresh,  // Running the refresh callback.
+  done,     // Animating the indicator's fade-out after refreshing.
   canceled, // Animating the indicator's fade-out after not arming.
 }
 
-/// A widget that supports the Material "pull down to refresh" and 
-/// "pull up to load more" (not Material) idiom.
+/// A widget that supports the Material "swipe to refresh" idiom.
 ///
 /// When the child's [Scrollable] descendant overscrolls, an animated circular
 /// progress indicator is faded into view. When the scroll ends, if the
 /// indicator has been dragged far enough for it to become completely opaque,
-/// the [onRefresh] or [onLoadMore] callback is called. The callback is expected to update the
+/// the [onRefresh] callback is called. The callback is expected to update the
 /// scrollable's contents and then complete the [Future] it returns. The refresh
 /// indicator disappears after the callback's [Future] has completed.
 ///
@@ -74,13 +71,13 @@ enum _RefreshIndicatorMode {
 /// See also:
 ///
 ///  * <https://material.google.com/patterns/swipe-to-refresh.html>
-///  * [_PdrpulmState], can be used to programatically show the refresh indicator.
+///  * [RefreshAndLoadMoreIndicatorState], can be used to programmatically show the refresh indicator.
 ///  * [RefreshProgressIndicator].
 class RefreshAndLoadMoreIndicator extends StatefulWidget {
   /// Creates a refresh indicator.
   ///
-  /// The [onRefresh] and [onLoadMore] should have at lease one, 
-  /// [child], and [notificationPredicate] arguments must be non-null. The default
+  /// The [onRefresh], [child], and [notificationPredicate] arguments must be
+  /// non-null. The default
   /// [displacement] is 40.0 logical pixels.
   const RefreshAndLoadMoreIndicator({
     Key key,
@@ -91,11 +88,10 @@ class RefreshAndLoadMoreIndicator extends StatefulWidget {
     this.color,
     this.backgroundColor,
     this.notificationPredicate: defaultScrollNotificationPredicate,
-  })
-      : assert(child != null),
-        assert(onRefresh != null || onLoadMore != null),
-        assert(notificationPredicate != null),
-        super(key: key);
+  }) : assert(child != null),
+       assert(onRefresh != null || onLoadMore != null),
+       assert(notificationPredicate != null),
+       super(key: key);
 
   /// The refresh indicator will be stacked on top of this child. The indicator
   /// will appear when child's Scrollable descendant is over-scrolled.
@@ -119,7 +115,7 @@ class RefreshAndLoadMoreIndicator extends StatefulWidget {
   /// The progress indicator's background color. The current theme's
   /// [ThemeData.canvasColor] by default.
   final Color backgroundColor;
-
+  
   /// A check that specifies whether a [ScrollNotification] should be
   /// handled by this widget.
   ///
@@ -128,13 +124,12 @@ class RefreshAndLoadMoreIndicator extends StatefulWidget {
   final ScrollNotificationPredicate notificationPredicate;
 
   @override
-  _PdrpulmState createState() => new _PdrpulmState();
+  RefreshAndLoadMoreIndicatorState createState() => new RefreshAndLoadMoreIndicatorState();
 }
 
 /// Contains the state for a [RefreshAndLoadMoreIndicator]. This class can be used to
 /// programmatically show the refresh indicator, see the [show] method.
-class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
-    with TickerProviderStateMixin {
+class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator> with TickerProviderStateMixin {
   AnimationController _positionController;
   AnimationController _scaleController;
   Animation<double> _positionFactor;
@@ -142,7 +137,7 @@ class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
   Animation<double> _value;
   Animation<Color> _valueColor;
 
-  _RefreshIndicatorMode _mode;
+  _RefreshAndLoadMoreIndicatorMode _mode;
   Future<Null> _pendingRefreshFuture;
   bool _isIndicatorAtTop;
   double _dragOffset;
@@ -155,32 +150,29 @@ class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
     _positionFactor = new Tween<double>(
       begin: 0.0,
       end: _kDragSizeFactorLimit,
-    )
-        .animate(_positionController);
-    _value = new Tween<double>(
-      // The "value" of the circular progress indicator during a drag.
+    ).animate(_positionController);
+    _value = new Tween<double>( // The "value" of the circular progress indicator during a drag.
       begin: 0.0,
       end: 0.75,
-    )
-        .animate(_positionController);
+    ).animate(_positionController);
 
     _scaleController = new AnimationController(vsync: this);
     _scaleFactor = new Tween<double>(
       begin: 1.0,
       end: 0.0,
-    )
-        .animate(_scaleController);
+    ).animate(_scaleController);
   }
 
   @override
   void didChangeDependencies() {
     final ThemeData theme = Theme.of(context);
     _valueColor = new ColorTween(
-            begin: (widget.color ?? theme.accentColor).withOpacity(0.0),
-            end: (widget.color ?? theme.accentColor).withOpacity(1.0))
-        .animate(new CurvedAnimation(
-            parent: _positionController,
-            curve: const Interval(0.0, 1.0 / _kDragSizeFactorLimit)));
+      begin: (widget.color ?? theme.accentColor).withOpacity(0.0),
+      end: (widget.color ?? theme.accentColor).withOpacity(1.0)
+    ).animate(new CurvedAnimation(
+      parent: _positionController,
+      curve: const Interval(0.0, 1.0 / _kDragSizeFactorLimit)
+    ));
     super.didChangeDependencies();
   }
 
@@ -192,62 +184,59 @@ class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
   }
 
   bool _handleScrollNotification(ScrollNotification notification) {
-    if (!widget.notificationPredicate(notification)) return false;
-    if (notification is ScrollStartNotification) {
-      List<String> ls = ["ScrollStart"];
-      notification.debugFillDescription(ls);
-      if (_mode == null) {
-        AxisDirection dir;
-        if (notification.metrics.extentBefore >
-            notification.metrics.extentAfter)
-          dir = AxisDirection.up;
-        else if (notification.metrics.extentBefore <
-            notification.metrics.extentAfter) dir = AxisDirection.down;
-        assert(dir != null);
-        if (_start(dir)) {
-          setState(() {
-            _mode = _RefreshIndicatorMode.drag;
-          });
-        }
-      }
+    if (!widget.notificationPredicate(notification))
+      return false;
+    if (notification is ScrollStartNotification && notification.metrics.extentBefore == 0.0 &&
+        _mode == null && _start(notification.metrics.axisDirection)) {
+      setState(() {
+        _mode = _RefreshAndLoadMoreIndicatorMode.drag;
+      });
+      return false;
+    }
+    else if (notification is ScrollStartNotification && notification.metrics.extentAfter == 0.0 &&
+        _mode == null && _start(notification.metrics.axisDirection)) {
+      setState(() {
+        _mode = _RefreshAndLoadMoreIndicatorMode.drag;
+      });
       return false;
     }
     bool indicatorAtTopNow;
-    if (notification.metrics.extentBefore > notification.metrics.extentAfter)
-      indicatorAtTopNow = false;
-    else if (notification.metrics.extentBefore <
-        notification.metrics.extentAfter) indicatorAtTopNow = true;
-
-    // if (notification.metrics.extentBefore == 0.0)
-    //   indicatorAtTopNow = true;
-    // else if (notification.metrics.extentAfter == 0.0) indicatorAtTopNow = false;
+    switch (notification.metrics.axisDirection) {
+      case AxisDirection.down:
+        indicatorAtTopNow = true;
+        break;
+      case AxisDirection.up:
+        indicatorAtTopNow = false;
+        break;
+      case AxisDirection.left:
+      case AxisDirection.right:
+        indicatorAtTopNow = null;
+        break;
+    }
     if (indicatorAtTopNow != _isIndicatorAtTop) {
-      if (_mode == _RefreshIndicatorMode.drag ||
-          _mode == _RefreshIndicatorMode.armed)
-        _dismiss(_RefreshIndicatorMode.canceled);
+      if (_mode == _RefreshAndLoadMoreIndicatorMode.drag || _mode == _RefreshAndLoadMoreIndicatorMode.armed)
+        _dismiss(_RefreshAndLoadMoreIndicatorMode.canceled);
     } else if (notification is ScrollUpdateNotification) {
-      if (_mode == _RefreshIndicatorMode.drag ||
-          _mode == _RefreshIndicatorMode.armed) {
-        // if (notification.metrics.extentBefore > 0.0) {
-        //   _dismiss(_RefreshIndicatorMode.canceled);
-        // } else {
-        _dragOffset -= notification.scrollDelta;
-        _checkDragOffset(notification.metrics.viewportDimension);
-        // }
+      if (_mode == _RefreshAndLoadMoreIndicatorMode.drag || _mode == _RefreshAndLoadMoreIndicatorMode.armed) {
+        if (notification.metrics.extentBefore > 0.0) {
+          _dismiss(_RefreshAndLoadMoreIndicatorMode.canceled);
+        } else {
+          _dragOffset -= notification.scrollDelta;
+          _checkDragOffset(notification.metrics.viewportDimension);
+        }
       }
     } else if (notification is OverscrollNotification) {
-      if (_mode == _RefreshIndicatorMode.drag ||
-          _mode == _RefreshIndicatorMode.armed) {
+      if (_mode == _RefreshAndLoadMoreIndicatorMode.drag || _mode == _RefreshAndLoadMoreIndicatorMode.armed) {
         _dragOffset -= notification.overscroll / 2.0;
         _checkDragOffset(notification.metrics.viewportDimension);
       }
     } else if (notification is ScrollEndNotification) {
       switch (_mode) {
-        case _RefreshIndicatorMode.armed:
+        case _RefreshAndLoadMoreIndicatorMode.armed:
           _show();
           break;
-        case _RefreshIndicatorMode.drag:
-          _dismiss(_RefreshIndicatorMode.canceled);
+        case _RefreshAndLoadMoreIndicatorMode.drag:
+          _dismiss(_RefreshAndLoadMoreIndicatorMode.canceled);
           break;
         default:
           // do nothing
@@ -258,8 +247,9 @@ class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
   }
 
   bool _handleGlowNotification(OverscrollIndicatorNotification notification) {
-    if (notification.depth != 0 || !notification.leading) return false;
-    if (_mode == _RefreshIndicatorMode.drag) {
+    if (notification.depth != 0 || !notification.leading)
+      return false;
+    if (_mode == _RefreshAndLoadMoreIndicatorMode.drag) {
       notification.disallowGlow();
       return true;
     }
@@ -290,37 +280,30 @@ class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
   }
 
   void _checkDragOffset(double containerExtent) {
-    assert(_mode == _RefreshIndicatorMode.drag ||
-        _mode == _RefreshIndicatorMode.armed);
-    double newValue =
-        _dragOffset / (containerExtent * _kDragContainerExtentPercentage);
-    if (_mode == _RefreshIndicatorMode.armed)
+    assert(_mode == _RefreshAndLoadMoreIndicatorMode.drag || _mode == _RefreshAndLoadMoreIndicatorMode.armed);
+    double newValue = _dragOffset / (containerExtent * _kDragContainerExtentPercentage);
+    if (_mode == _RefreshAndLoadMoreIndicatorMode.armed)
       newValue = math.max(newValue, 1.0 / _kDragSizeFactorLimit);
-    _positionController.value =
-        newValue.clamp(0.0, 1.0); // this triggers various rebuilds
-    if (_mode ==
-        _RefreshIndicatorMode.drag) // && _valueColor.value.alpha == 0xFF)
-      _mode = _RefreshIndicatorMode.armed;
+    _positionController.value = newValue.clamp(0.0, 1.0); // this triggers various rebuilds
+    if (_mode == _RefreshAndLoadMoreIndicatorMode.drag && _valueColor.value.alpha == 0xFF)
+      _mode = _RefreshAndLoadMoreIndicatorMode.armed;
   }
 
   // Stop showing the refresh indicator.
-  Future<Null> _dismiss(_RefreshIndicatorMode newMode) async {
+  Future<Null> _dismiss(_RefreshAndLoadMoreIndicatorMode newMode) async {
     // This can only be called from _show() when refreshing and
     // _handleScrollNotification in response to a ScrollEndNotification or
     // direction change.
-    assert(newMode == _RefreshIndicatorMode.canceled ||
-        newMode == _RefreshIndicatorMode.done);
+    assert(newMode == _RefreshAndLoadMoreIndicatorMode.canceled || newMode == _RefreshAndLoadMoreIndicatorMode.done);
     setState(() {
       _mode = newMode;
     });
     switch (_mode) {
-      case _RefreshIndicatorMode.done:
-        await _scaleController.animateTo(1.0,
-            duration: _kIndicatorScaleDuration);
+      case _RefreshAndLoadMoreIndicatorMode.done:
+        await _scaleController.animateTo(1.0, duration: _kIndicatorScaleDuration);
         break;
-      case _RefreshIndicatorMode.canceled:
-        await _positionController.animateTo(0.0,
-            duration: _kIndicatorScaleDuration);
+      case _RefreshAndLoadMoreIndicatorMode.canceled:
+        await _positionController.animateTo(0.0, duration: _kIndicatorScaleDuration);
         break;
       default:
         assert(false);
@@ -335,49 +318,52 @@ class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
   }
 
   void _show() {
-    assert(_mode != _RefreshIndicatorMode.refresh);
-    assert(_mode != _RefreshIndicatorMode.snap);
+    assert(_mode != _RefreshAndLoadMoreIndicatorMode.refresh);
+    assert(_mode != _RefreshAndLoadMoreIndicatorMode.snap);
     final Completer<Null> completer = new Completer<Null>();
     _pendingRefreshFuture = completer.future;
-    _mode = _RefreshIndicatorMode.snap;
+    _mode = _RefreshAndLoadMoreIndicatorMode.snap;
     _positionController
-        .animateTo(1.0 / _kDragSizeFactorLimit,
-            duration: _kIndicatorSnapDuration)
-        .then<Null>((Null value) {
-      if (mounted && _mode == _RefreshIndicatorMode.snap) {
-        assert(widget.onRefresh != null || widget.onLoadMore != null);
-        setState(() {
-          // Show the indeterminate progress indicator.
-          _mode = _RefreshIndicatorMode.refresh;
-        });
+      .animateTo(1.0 / _kDragSizeFactorLimit, duration: _kIndicatorSnapDuration)
+      .then<Null>((Null value) {
+        if (mounted && _mode == _RefreshAndLoadMoreIndicatorMode.snap) {
+          assert(widget.onRefresh != null);
+          setState(() {
+            // Show the indeterminate progress indicator.
+            _mode = _RefreshAndLoadMoreIndicatorMode.refresh;
+          });
 
-        if (_isIndicatorAtTop == true && widget.onRefresh != null)
-          widget.onRefresh().whenComplete(() {
-            if (mounted && _mode == _RefreshIndicatorMode.refresh) {
+          final Future<Null> refreshResult = widget.onRefresh();
+          assert(() {
+            if (refreshResult == null)
+              FlutterError.reportError(new FlutterErrorDetails(
+                exception: new FlutterError(
+                  'The onRefresh callback returned null.\n'
+                  'The RefreshAndLoadMoreIndicator onRefresh callback must return a Future.'
+                ),
+                context: 'when calling onRefresh',
+                library: 'material library',
+              ));
+            return true;
+          });
+          if (refreshResult == null)
+            return;
+          refreshResult.whenComplete(() {
+            if (mounted && _mode == _RefreshAndLoadMoreIndicatorMode.refresh) {
               completer.complete();
-              _dismiss(_RefreshIndicatorMode.done);
+              _dismiss(_RefreshAndLoadMoreIndicatorMode.done);
             }
           });
-        else if (_isIndicatorAtTop == false && widget.onLoadMore != null)
-          widget.onLoadMore().whenComplete(() {
-            if (mounted && _mode == _RefreshIndicatorMode.refresh) {
-              completer.complete();
-              _dismiss(_RefreshIndicatorMode.done);
-            }
-          });
-        else {
-          _dismiss(_RefreshIndicatorMode.done);
         }
-      }
-    });
+      });
   }
 
   /// Show the refresh indicator and run the refresh callback as if it had
   /// been started interactively. If this method is called while the refresh
   /// callback is running, it quietly does nothing.
   ///
-  /// Creating the [RefreshAndLoadMoreIndicator] with a [GlobalKey<_PdrpulmState>]
-  /// makes it possible to refer to the [_PdrpulmState].
+  /// Creating the [RefreshAndLoadMoreIndicator] with a [GlobalKey<RefreshAndLoadMoreIndicatorState>]
+  /// makes it possible to refer to the [RefreshAndLoadMoreIndicatorState].
   ///
   /// The future returned from this method completes when the
   /// [RefreshAndLoadMoreIndicator.onRefresh] callback's future completes.
@@ -388,10 +374,11 @@ class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
   /// When initiated in this manner, the refresh indicator is independent of any
   /// actual scroll view. It defaults to showing the indicator at the top. To
   /// show it at the bottom, set `atTop` to false.
-  Future<Null> show({bool atTop: true}) {
-    if (_mode != _RefreshIndicatorMode.refresh &&
-        _mode != _RefreshIndicatorMode.snap) {
-      if (_mode == null) _start(atTop ? AxisDirection.down : AxisDirection.up);
+  Future<Null> show({ bool atTop: true }) {
+    if (_mode != _RefreshAndLoadMoreIndicatorMode.refresh &&
+        _mode != _RefreshAndLoadMoreIndicatorMode.snap) {
+      if (_mode == null)
+        _start(atTop ? AxisDirection.down : AxisDirection.up);
       _show();
     }
     return _pendingRefreshFuture;
@@ -418,8 +405,7 @@ class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
     assert(_isIndicatorAtTop != null);
 
     final bool showIndeterminateIndicator =
-        _mode == _RefreshIndicatorMode.refresh ||
-            _mode == _RefreshIndicatorMode.done;
+      _mode == _RefreshAndLoadMoreIndicatorMode.refresh || _mode == _RefreshAndLoadMoreIndicatorMode.done;
 
     return new Stack(
       children: <Widget>[
@@ -434,11 +420,11 @@ class _PdrpulmState extends State<RefreshAndLoadMoreIndicator>
             sizeFactor: _positionFactor, // this is what brings it down
             child: new Container(
               padding: _isIndicatorAtTop
-                  ? new EdgeInsets.only(top: widget.displacement)
-                  : new EdgeInsets.only(bottom: widget.displacement),
+                ? new EdgeInsets.only(top: widget.displacement)
+                : new EdgeInsets.only(bottom: widget.displacement),
               alignment: _isIndicatorAtTop
-                  ? Alignment.topCenter
-                  : Alignment.bottomCenter,
+                ? Alignment.topCenter
+                : Alignment.bottomCenter,
               child: new ScaleTransition(
                 scale: _scaleFactor,
                 child: new AnimatedBuilder(
