@@ -1,7 +1,7 @@
 name: pdrpulm
 description: Pull Down to Refresh & Pull Up to Load More
 version: 0.0.1
-author: kpedia@163.com
+author: Ken <kenshao@gmail.com>
 homepage: http://github.com/pedia/pdrpulm
 
 dependencies:
