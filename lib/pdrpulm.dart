@@ -183,19 +183,46 @@ class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator
     super.dispose();
   }
 
+  AxisDirection direction(ScrollNotification notification) {
+    AxisDirection res;
+    if (notification.metrics.pixels < 0)
+      res = AxisDirection.down;
+    else if (notification.metrics.pixels > 0)
+      res = AxisDirection.up;
+    else
+      res = notification.metrics.axisDirection;
+
+    // if (notification.metrics.axisDirection != res)
+    // print("notification $res ${notification.metrics.pixels}"
+    //   " ${notification.metrics.axisDirection}"
+    //   );
+    return res;
+  }
+
   bool _handleScrollNotification(ScrollNotification notification) {
     if (!widget.notificationPredicate(notification))
       return false;
-    if (notification is ScrollStartNotification && notification.metrics.extentBefore == 0.0 &&
-        _mode == null && _start(notification.metrics.axisDirection)) {
-      setState(() {
-        _mode = _RefreshAndLoadMoreIndicatorMode.drag;
-      });
+    if (notification is ScrollEndNotification) {
+      print("is end");
+    }
+    if (notification is ScrollStartNotification) {
+      print("is start before: ${notification.metrics.extentBefore} ${notification.metrics.pixels} after: ${notification.metrics.extentAfter}, _mode: $_mode");
+    }
+    if (notification is ScrollStartNotification && 
+        notification.metrics.extentAfter == 0.0 &&
+        _mode == null && _start(direction(notification))) {
+          print("_handle to drag(up)");
+          setState(() {
+            print("setState to drag(up)");
+            _mode = _RefreshAndLoadMoreIndicatorMode.drag;
+          });
       return false;
     }
-    else if (notification is ScrollStartNotification && notification.metrics.extentAfter == 0.0 &&
-        _mode == null && _start(notification.metrics.axisDirection)) {
+    if (notification is ScrollStartNotification && notification.metrics.extentBefore == 0.0 &&
+        _mode == null && _start(direction(notification))) {
+      print("before _handle to drag");
       setState(() {
+        print("_handle to drag");
         _mode = _RefreshAndLoadMoreIndicatorMode.drag;
       });
       return false;
@@ -213,17 +240,21 @@ class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator
         indicatorAtTopNow = null;
         break;
     }
+    indicatorAtTopNow = direction(notification) == AxisDirection.down;
+    print("$indicatorAtTopNow != $_isIndicatorAtTop $_mode");
     if (indicatorAtTopNow != _isIndicatorAtTop) {
       if (_mode == _RefreshAndLoadMoreIndicatorMode.drag || _mode == _RefreshAndLoadMoreIndicatorMode.armed)
+        print("_dismiss $_mode 1");
         _dismiss(_RefreshAndLoadMoreIndicatorMode.canceled);
     } else if (notification is ScrollUpdateNotification) {
       if (_mode == _RefreshAndLoadMoreIndicatorMode.drag || _mode == _RefreshAndLoadMoreIndicatorMode.armed) {
-        if (notification.metrics.extentBefore > 0.0) {
-          _dismiss(_RefreshAndLoadMoreIndicatorMode.canceled);
-        } else {
+        // if (notification.metrics.extentBefore > 0.0) {
+        //   print("_dismiss 2");
+        //   _dismiss(_RefreshAndLoadMoreIndicatorMode.canceled);
+        // } else {
           _dragOffset -= notification.scrollDelta;
           _checkDragOffset(notification.metrics.viewportDimension);
-        }
+        // }
       }
     } else if (notification is OverscrollNotification) {
       if (_mode == _RefreshAndLoadMoreIndicatorMode.drag || _mode == _RefreshAndLoadMoreIndicatorMode.armed) {
@@ -231,6 +262,7 @@ class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator
         _checkDragOffset(notification.metrics.viewportDimension);
       }
     } else if (notification is ScrollEndNotification) {
+      print("end $_mode");
       switch (_mode) {
         case _RefreshAndLoadMoreIndicatorMode.armed:
           _show();
@@ -257,6 +289,7 @@ class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator
   }
 
   bool _start(AxisDirection direction) {
+    print("_start $direction");
     assert(_mode == null);
     assert(_isIndicatorAtTop == null);
     assert(_dragOffset == null);
@@ -285,6 +318,9 @@ class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator
     if (_mode == _RefreshAndLoadMoreIndicatorMode.armed)
       newValue = math.max(newValue, 1.0 / _kDragSizeFactorLimit);
     _positionController.value = newValue.clamp(0.0, 1.0); // this triggers various rebuilds
+    if (_mode == _RefreshAndLoadMoreIndicatorMode.drag && _valueColor.value.alpha == 0) {
+      _mode = _RefreshAndLoadMoreIndicatorMode.armed;
+    }
     if (_mode == _RefreshAndLoadMoreIndicatorMode.drag && _valueColor.value.alpha == 0xFF)
       _mode = _RefreshAndLoadMoreIndicatorMode.armed;
   }
@@ -296,6 +332,7 @@ class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator
     // direction change.
     assert(newMode == _RefreshAndLoadMoreIndicatorMode.canceled || newMode == _RefreshAndLoadMoreIndicatorMode.done);
     setState(() {
+      print("dismiss $newMode");
       _mode = newMode;
     });
     switch (_mode) {
@@ -312,12 +349,14 @@ class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator
       _dragOffset = null;
       _isIndicatorAtTop = null;
       setState(() {
+        print("dismiss");
         _mode = null;
       });
     }
   }
 
   void _show() {
+    print("_show");
     assert(_mode != _RefreshAndLoadMoreIndicatorMode.refresh);
     assert(_mode != _RefreshAndLoadMoreIndicatorMode.snap);
     final Completer<Null> completer = new Completer<Null>();
@@ -327,9 +366,11 @@ class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator
       .animateTo(1.0 / _kDragSizeFactorLimit, duration: _kIndicatorSnapDuration)
       .then<Null>((Null value) {
         if (mounted && _mode == _RefreshAndLoadMoreIndicatorMode.snap) {
-          assert(widget.onRefresh != null);
+          // assert(widget.onRefresh != null);
+          print("before setState to refresh");
           setState(() {
             // Show the indeterminate progress indicator.
+            print("to refresh");
             _mode = _RefreshAndLoadMoreIndicatorMode.refresh;
           });
 
@@ -403,6 +444,7 @@ class RefreshAndLoadMoreIndicatorState extends State<RefreshAndLoadMoreIndicator
     }
     assert(_dragOffset != null);
     assert(_isIndicatorAtTop != null);
+    print("build: $_isIndicatorAtTop");
 
     final bool showIndeterminateIndicator =
       _mode == _RefreshAndLoadMoreIndicatorMode.refresh || _mode == _RefreshAndLoadMoreIndicatorMode.done;

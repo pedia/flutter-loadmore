@@ -1,6 +1,6 @@
 name: pdrpulm
 description: Pull Down to Refresh & Pull Up to Load More
-version: 0.0.1
+version: 0.0.2
 author: Ken <kenshao@gmail.com>
 homepage: http://github.com/pedia/pdrpulm
 
@@ -13,3 +13,4 @@ dev_dependencies:
     sdk: flutter
 
 flutter:
+  uses-material-design: true
