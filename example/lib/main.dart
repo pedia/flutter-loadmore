@@ -3,13 +3,19 @@ import 'package:flutter/material.dart';
 
 void main() => runApp(new MaterialApp(home: new Scaffold(body: new Tank())));
 
-enum _PullIndicatorMode { drag, armed, done, canceled }
+class ScrollIndicator extends StatefulWidget {
+  ScrollIndicator({this.child, this.onRefresh, this.onLoadMore});
 
-class Tank extends StatefulWidget {
-  _TankState createState() => new _TankState();
+  final Widget child;
+  final VoidCallback onRefresh;
+  final VoidCallback onLoadMore;
+
+  _ScrollIndicatorState createState() => new _ScrollIndicatorState();
 }
 
-class _TankState extends State<Tank> {
+enum _PullIndicatorMode { drag, armed, done, canceled }
+
+class _ScrollIndicatorState extends State<ScrollIndicator> {
   double _dragOffset;
   _PullIndicatorMode _mode;
 
@@ -56,21 +62,7 @@ class _TankState extends State<Tank> {
   }
 
   Widget build(BuildContext context) {
-    bool flag = _dragOffset != null ?? _dragOffset < 0;
-    print("build $_mode, $_dragOffset flag: $flag");
-    Widget child = new NotificationListener(
-        onNotification: _handleScrollNotification,
-        child: new ListView(
-            // physics: const AlwaysScrollableScrollPhysics(),
-            children: <String>['A', 'B', 'C', 'D', 'E', 'F'].map((String item) {
-          return new Container(
-            height: 150.0,
-            decoration: new BoxDecoration(border: new Border.all()),
-            child: new Text(item, textDirection: TextDirection.ltr),
-          );
-        }).toList()));
-
-    List<Widget> cols = <Widget>[child];
+    List<Widget> cols = <Widget>[widget.child];
     if (_mode == _PullIndicatorMode.armed && _dragOffset > 0.0) {
       cols.add(new Positioned(
           left: 0.0,
@@ -97,9 +89,30 @@ class _TankState extends State<Tank> {
               color: Colors.red,
               child: new Text("Loading more"))));
     }
+    return new NotificationListener(
+        onNotification: _handleScrollNotification,
+        child: new Stack(children: cols));
+  }
+}
 
+class Tank extends StatefulWidget {
+  _TankState createState() => new _TankState();
+}
+
+class _TankState extends State<Tank> {
+  Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(title: const Text("title")),
-        body: new Stack(children: cols));
+        body: new ScrollIndicator(
+            child: new ListView(
+                // physics: const AlwaysScrollableScrollPhysics(),
+                children:
+                    <String>['A', 'B', 'C', 'D', 'E', 'F'].map((String item) {
+          return new Container(
+            height: 150.0,
+            decoration: new BoxDecoration(border: new Border.all()),
+            child: new Text(item, textDirection: TextDirection.ltr),
+          );
+        }).toList())));
   }
 }
