@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
 // import 'dart:core';
 
-void main() => runApp(new MaterialApp(home: new Scaffold(body: new Tank())));
+final kDragOffset = 40.0;
+
+enum _PullIndicatorMode { drag, armed, done, canceled }
+
+class Indicator extends StatelessWidget {
+  Indicator(this.text);
+
+  final String text;
+
+  Widget build(BuildContext context) {
+    return new Container(
+        height: 20.0,
+        alignment: const Alignment(0.0, 0.0),
+        child: new Text(text));
+  }
+}
 
 class ScrollIndicator extends StatefulWidget {
   ScrollIndicator({this.child, this.onRefresh, this.onLoadMore});
@@ -12,8 +27,6 @@ class ScrollIndicator extends StatefulWidget {
 
   _ScrollIndicatorState createState() => new _ScrollIndicatorState();
 }
-
-enum _PullIndicatorMode { drag, armed, done, canceled }
 
 class _ScrollIndicatorState extends State<ScrollIndicator> {
   double _dragOffset;
@@ -42,13 +55,13 @@ class _ScrollIndicatorState extends State<ScrollIndicator> {
       ls.add("total: ${_dragOffset.toStringAsFixed(1)}");
       print(ls.join(" "));
 
-      // notification.metrics.pixels
-
       if (_mode == _PullIndicatorMode.drag) {
-        if (notification.metrics.extentBefore == 0.0 && _dragOffset > 40.0) {
+        if (notification.metrics.extentBefore == 0.0 &&
+            _dragOffset > kDragOffset) {
           changeMode(_PullIndicatorMode.armed);
         }
-        if (notification.metrics.extentAfter == 0.0 && _dragOffset < -40.0) {
+        if (notification.metrics.extentAfter == 0.0 &&
+            _dragOffset < -kDragOffset) {
           changeMode(_PullIndicatorMode.armed);
         }
       }
@@ -111,8 +124,10 @@ class _TankState extends State<Tank> {
           return new Container(
             height: 150.0,
             decoration: new BoxDecoration(border: new Border.all()),
-            child: new Text(item, textDirection: TextDirection.ltr),
+            child: new Indicator(item),
           );
         }).toList())));
   }
 }
+
+void main() => runApp(new MaterialApp(home: new Scaffold(body: new Tank())));

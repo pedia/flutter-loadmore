@@ -1,5 +1,5 @@
-name: example
-description: A new Flutter project.
+name: ScrollIndicatorExample
+description: Example for ScrollIndicator plugin.
 
 dependencies:
   flutter:
