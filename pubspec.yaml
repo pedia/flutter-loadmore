@@ -1,6 +1,6 @@
 name: pdrpulm
-description: Pull Down to Refresh & Pull Up to Load More
-version: 0.1.0
+description: Pull Down to Refresh & Pull Up to Load More for ScrollView
+version: 1.0.0
 author: Ken <kenshao@gmail.com>
 homepage: http://github.com/pedia/pdrpulm
 

@@ -1,13 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 final kDragOffset = 40.0;
 
 enum _PullIndicatorMode { drag, armed, done, canceled }
 
-/// Used by [ScrollIndicator.onRefresh].
+/// The signature for a function that's called when the user has dragged a
+/// [ScrollIndicator] far enough to demonstrate that they want the app to
+/// refresh or load more. The returned [Future] must complete when the 
+/// refresh or load more operation is finished.
+/// 
+/// Used by [ScrollIndicator.onRefresh] and [ScrollIndicator.onLoadMore]
 typedef Future<Null> PullCallback();
 
 class ScrollIndicator extends StatefulWidget {
