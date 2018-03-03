@@ -2,24 +2,24 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:pdrpulm/pdrpulm.dart';
 
-class Tank extends StatefulWidget {
-  _TankState createState() => new _TankState();
-}
-
-class Indicator extends StatelessWidget {
-  Indicator(this.text);
-
-  final String text;
-
+class Demo extends StatelessWidget {
   Widget build(BuildContext context) {
-    return new Container(
-        height: 20.0,
-        alignment: const Alignment(0.0, 0.0),
-        child: new Text(text));
+    return new Scaffold(
+        appBar: new AppBar(title: const Text("Demo"), elevation: 0.0),
+        body: new Center(child: new Text("Demo")));
   }
 }
 
-class _TankState extends State<Tank> {
+class TheList extends StatefulWidget {
+  TheList({
+    this.scrollDirection: Axis.vertical,
+  });
+
+  final Axis scrollDirection;
+  _TheListState createState() => new _TheListState();
+}
+
+class _TheListState extends State<TheList> {
   int itemCount;
 
   @override
@@ -43,20 +43,70 @@ class _TankState extends State<Tank> {
 
   Widget build(BuildContext context) {
     return new ScrollIndicator(
-        onLoadMore: onLoadMore,
-        child: new ListView.builder(
-            itemCount: itemCount,
-            itemBuilder: (BuildContext context, int index) {
-              return new Container(
-                height: 150.0,
-                decoration: new BoxDecoration(border: new Border.all()),
-                child: new Indicator(index.toString()),
-              );
-            }));
+      onLoadMore: onLoadMore,
+      child: new ListView.builder(
+          scrollDirection: widget.scrollDirection,
+          itemCount: itemCount,
+          itemBuilder: (BuildContext context, int index) {
+            return new InkWell(
+              onTap: () {
+                Navigator.of(context, rootNavigator: true).push(
+                  new MaterialPageRoute<Null>(builder: (BuildContext context) {
+                    return new Material(
+                        child: new Scaffold(
+                      appBar: new AppBar(title: new Text("")),
+                      body: new TheApp(),
+                    ));
+                  }),
+                );
+              },
+              child: new Ink(
+                height:
+                    widget.scrollDirection == Axis.horizontal ? null : 100.0,
+                width: widget.scrollDirection == Axis.horizontal ? 50.0 : null,
+                decoration: new BoxDecoration(
+                  color: Colors.red,
+                  border: new Border.all()),
+                child: new Center(
+                  child: new Text("$index"),
+                ),
+              ),
+            );
+          }),
+    );
   }
 }
 
-void main() => runApp(new MaterialApp(
-    home: new Scaffold(
-        appBar: new AppBar(title: const Text("EXAMPLE FOR PDRPULM")),
-        body: new Tank())));
+class TheApp extends StatelessWidget {
+  Widget build(BuildContext context) {
+    // return new TheList(
+    //   scrollDirection: Axis.vertical,
+    // );
+    return new Column(
+      children: <Widget>[
+        new Container(
+          height: 100.0,
+          child: new TheList(
+            scrollDirection: Axis.horizontal,
+          ),
+        ),
+        new Container(
+          height: MediaQuery.of(context).size.height - 200,
+          child: new TheList(
+            scrollDirection: Axis.vertical,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+void main() => runApp(
+      new MaterialApp(
+        home: new Scaffold(
+          appBar: new AppBar(
+              title: const Text("EXAMPLE FOR PDRPULM"), elevation: 0.0),
+          body: new TheApp(),
+        ),
+      ),
+    );

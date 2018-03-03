@@ -9,9 +9,9 @@ enum _PullIndicatorMode { drag, armed, done, canceled }
 
 /// The signature for a function that's called when the user has dragged a
 /// [ScrollIndicator] far enough to demonstrate that they want the app to
-/// refresh or load more. The returned [Future] must complete when the 
+/// refresh or load more. The returned [Future] must complete when the
 /// refresh or load more operation is finished.
-/// 
+///
 /// Used by [ScrollIndicator.onRefresh] and [ScrollIndicator.onLoadMore]
 typedef Future<Null> PullCallback();
 
@@ -95,7 +95,7 @@ class _ScrollIndicatorState extends State<ScrollIndicator> {
     if (_mode == _PullIndicatorMode.armed && _dragOffset < 0.0) {
       // TODO: Show LoadMore Indicator
     }
-    return new NotificationListener(
+    return new NotificationListener<ScrollNotification>(
         onNotification: _handleScrollNotification, child: widget.child);
   }
 }
