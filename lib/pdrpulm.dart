@@ -13,7 +13,7 @@ enum _PullIndicatorMode { drag, armed, done, canceled }
 /// refresh or load more operation is finished.
 ///
 /// Used by [ScrollIndicator.onRefresh] and [ScrollIndicator.onLoadMore]
-typedef Future<Null> PullCallback();
+typedef Future PullCallback();
 
 class ScrollIndicator extends StatefulWidget {
   ScrollIndicator({@required this.child, this.onRefresh, this.onLoadMore});
@@ -35,7 +35,7 @@ class _ScrollIndicatorState extends State<ScrollIndicator> {
     });
   }
 
-  void handleResult(Future<Null> result) {
+  void handleResult(Future result) {
     assert(() {
       if (result == null)
         FlutterError.reportError(new FlutterErrorDetails(
@@ -46,7 +46,7 @@ class _ScrollIndicatorState extends State<ScrollIndicator> {
           library: 'pdrpulm library',
         ));
       return true;
-    });
+    }());
     if (result == null) return;
     result.whenComplete(() {
       if (mounted && _mode == _PullIndicatorMode.armed) {
@@ -96,6 +96,8 @@ class _ScrollIndicatorState extends State<ScrollIndicator> {
       // TODO: Show LoadMore Indicator
     }
     return new NotificationListener<ScrollNotification>(
-        onNotification: _handleScrollNotification, child: widget.child);
+      onNotification: _handleScrollNotification,
+      child: widget.child,
+    );
   }
 }
