@@ -20,6 +20,7 @@ Widget build(BuildContext context) {
             }));
   }
 ```
+Full example (fetch stock via HTTP) in example folder.
 
 ## Roadmap
 
