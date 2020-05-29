@@ -3,7 +3,12 @@ import 'package:flutter/widgets.dart';
 
 const int kDragOffset = 40;
 
-enum _LoadMoreMode { drag, armed, done, canceled }
+enum _LoadMoreMode {
+  drag,
+  armed,
+  // done,
+  // canceled,
+}
 
 /// The signature for a function that's called when the user has dragged a
 /// [LoadMore] far enough to demonstrate that they want the app to

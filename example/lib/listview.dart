@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_loadmore/loadmore.dart';
+import 'package:flutter_loadmore/flutter_loadmore.dart';
 
 import 'models.dart';
 
