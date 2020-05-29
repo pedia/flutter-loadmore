@@ -21,16 +21,6 @@ class DemoList extends StatefulWidget {
 }
 
 class _DemoListState extends State<DemoList> {
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   if (widget.stockData.stocks.isEmpty) {
-  //     widget.stockData.fetchNextChunk().then((page) {
-  //       setState(() {});
-  //     });
-  //   }
-  // }
-
   Future<List<Demo>> _handleLoadMore() {
     return widget.provider.fetchNextChunk().then((_) {
       setState(() {});
