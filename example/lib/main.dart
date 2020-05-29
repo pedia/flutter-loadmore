@@ -1,26 +1,24 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'stock_list.dart';
-import 'stock_data.dart';
+import 'listview.dart';
+import 'models.dart';
 
-class TheApp extends StatelessWidget {
-  final StockData data = new StockData();
+void main() async {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    print('-------------');
+    print('global error: $details');
+    print('-------------');
+  };
 
-  Widget build(BuildContext context) {
-    return new StockList(
-      stockData: data,
-      scrollDirection: Axis.vertical,
-    );
-  }
-}
-
-void main() => runApp(
-      new MaterialApp(
-        home: new Scaffold(
-          appBar: new AppBar(
-            title: const Text("EXAMPLE FOR PDRPULM"),
-            elevation: 0.0,
-          ),
-          body: new TheApp(),
+  runApp(
+    MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text("Loadmore Example"),
+          elevation: 0,
         ),
+        body: DemoList(provider: Provider()),
       ),
-    );
+    ),
+  );
+}

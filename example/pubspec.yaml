@@ -1,14 +1,14 @@
-name: ScrollIndicatorExample
-description: Example for ScrollIndicator plugin.
+name: LoadMoreExample
+description: Example for loadmore plugin.
 
 dependencies:
   flutter:
     sdk: flutter
 
-  pdrpulm:
+  flutter_loadmore:
     path: ../
 
-  cupertino_icons: ^0.1.0
+  cupertino_icons:
 
 dev_dependencies:
   flutter_test:

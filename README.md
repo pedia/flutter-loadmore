@@ -1,28 +1,23 @@
-# pdrpulm (Pull Down to Refresh & Pull Up to Load More)
+# flutter-loadmore
 
-A widget that supports "Pull Down to Refresh & Pull Up to Load More" idiom.
-Google Material never have "Pull Up to Load More" so implement as a package.
+A widget that supports idiom of "Pull Down to Refresh & Pull Up to Load More" for ListView .
+Material never have this.
 
 ## Getting Started
 
 ```
-Widget build(BuildContext context) {
-    return new ScrollIndicator(
-        onLoadMore: onLoadMore,
-        child: new ListView.builder(
-            itemCount: itemCount,
-            itemBuilder: (BuildContext context, int index) {
-              return new Container(
-                height: 150.0,
-                decoration: new BoxDecoration(border: new Border.all()),
-                child: new Indicator(index.toString()),
-              );
-            }));
+  Widget createView(BuildContext context) {
+    return LoadMore(
+      onLoadMore: _handleLoadMore,
+      child: ListView.builder(
+        itemCount: widget.provider.data.length,
+        itemBuilder: (BuildContext context, int index) {
+          final item = widget.provider.data[index];
+          return ListTile(title: Text(item.name));
+        },
+      ),
+    );
   }
 ```
-Full example (fetch stock via HTTP) in example folder.
-
-## Roadmap
-
-add custom indicator when refresh or loading more
+Full example (fetch stock via HTTPS) in example folder.
 

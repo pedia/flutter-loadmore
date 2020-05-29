@@ -1,8 +1,10 @@
-name: pdrpulm
+name: flutter_loadmore
 description: Idiom for Pull-Down-Refresh & Pull-Up-Load-More for ListView
-version: 1.0.2
+version: 2.0.0
 author: Ken <kenshao@gmail.com>
-homepage: http://github.com/pedia/pdrpulm
+homepage: http://github.com/pedia/flutter-loadmore
+environment:
+  sdk: ">=2.3.0 <3.0.0"
 
 dependencies:
   flutter:
